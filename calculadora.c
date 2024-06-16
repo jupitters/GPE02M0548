@@ -7,6 +7,10 @@
 #define MAX_TOKEN_SIZE 20
 #define MAX_STACK_SIZE 100
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 typedef struct {
     double data[MAX_STACK_SIZE];
     int top;
@@ -92,11 +96,15 @@ double apply_operator(char op, double a, double b) {
     }
 }
 
+double degrees_to_radians(double degrees) {
+    return degrees * M_PI / 180.0;
+}
+
 double apply_function(const char *func, double a) {
     if (strcmp(func, "raiz") == 0) return sqrt(a);
-    if (strcmp(func, "sen") == 0) return sin(a);
-    if (strcmp(func, "cos") == 0) return cos(a);
-    if (strcmp(func, "tg") == 0) return tan(a);
+    if (strcmp(func, "sen") == 0) return sin(degrees_to_radians(a));
+    if (strcmp(func, "cos") == 0) return cos(degrees_to_radians(a));
+    if (strcmp(func, "tg") == 0) return tan(degrees_to_radians(a));
     if (strcmp(func, "log") == 0) return log10(a);
     return 0;
 }
@@ -123,23 +131,28 @@ double evaluate_postfix(const char *expression, char *infix) {
                     char *right = pop_expr(&es);
                     char *left = pop_expr(&es);
                     char *new_expr = malloc(MAX_EXPR_SIZE);
-                    sprintf(new_expr, "(%s %c %s)", left, token[0], right);
+                    snprintf(new_expr, MAX_EXPR_SIZE, "(%s %c %s)", left, token[0], right);
                     push_expr(&es, new_expr);
+                    free(left);
+                    free(right);
 
-                } else if (strstr("raiz sen cos tg log", token) != NULL) {
+                } else if (strcmp(token, "raiz") == 0 || strcmp(token, "sen") == 0 ||
+                           strcmp(token, "cos") == 0 || strcmp(token, "tg") == 0 ||
+                           strcmp(token, "log") == 0) {
                     double a = pop(&s);
                     double result = apply_function(token, a);
                     push(&s, result);
 
                     char *operand = pop_expr(&es);
                     char *new_expr = malloc(MAX_EXPR_SIZE);
-                    sprintf(new_expr, "%s(%s)", token, operand);
+                    snprintf(new_expr, MAX_EXPR_SIZE, "%s(%s)", token, operand);
                     push_expr(&es, new_expr);
+                    free(operand);
 
                 } else {
                     push(&s, atof(token));
                     char *operand = malloc(MAX_TOKEN_SIZE);
-                    strcpy(operand, token);
+                    snprintf(operand, MAX_TOKEN_SIZE, "%s", token);
                     push_expr(&es, operand);
                 }
                 j = 0;
@@ -161,23 +174,28 @@ double evaluate_postfix(const char *expression, char *infix) {
             char *right = pop_expr(&es);
             char *left = pop_expr(&es);
             char *new_expr = malloc(MAX_EXPR_SIZE);
-            sprintf(new_expr, "(%s %c %s)", left, token[0], right);
+            snprintf(new_expr, MAX_EXPR_SIZE, "(%s %c %s)", left, token[0], right);
             push_expr(&es, new_expr);
+            free(left);
+            free(right);
 
-        } else if (strstr("raiz sen cos tg log", token) != NULL) {
+        } else if (strcmp(token, "raiz") == 0 || strcmp(token, "sen") == 0 ||
+                   strcmp(token, "cos") == 0 || strcmp(token, "tg") == 0 ||
+                   strcmp(token, "log") == 0) {
             double a = pop(&s);
             double result = apply_function(token, a);
             push(&s, result);
 
             char *operand = pop_expr(&es);
             char *new_expr = malloc(MAX_EXPR_SIZE);
-            sprintf(new_expr, "%s(%s)", token, operand);
+            snprintf(new_expr, MAX_EXPR_SIZE, "%s(%s)", token, operand);
             push_expr(&es, new_expr);
+            free(operand);
 
         } else {
             push(&s, atof(token));
             char *operand = malloc(MAX_TOKEN_SIZE);
-            strcpy(operand, token);
+            snprintf(operand, MAX_TOKEN_SIZE, "%s", token);
             push_expr(&es, operand);
         }
     }
